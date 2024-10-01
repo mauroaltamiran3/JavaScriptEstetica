@@ -11,7 +11,7 @@ class Pedido {
     agregarServicio(query, esExtra) {
         query.forEach(servicio => {
             const index = servicio.dataset.index;
-            const servicioSeleccionado = servicios.dbServicios[index];
+            const servicioSeleccionado = Servicios.dbServicios[index];
 
             if(esExtra) {
                 const cantidad = servicio.value;
@@ -27,7 +27,6 @@ class Pedido {
     }
 
     mostrarSeleccionados(contenedor) {
-
         const divBase = document.createElement('div');
         const divExtra = document.createElement('div');
         const contenedorDivs = document.createElement('div');
@@ -74,7 +73,7 @@ class Pedido {
         labelDescuentos.style.fontStyle = 'italic';
         labelDescuentos.style.fontSize = '10px';
 
-        let totalBase = pedido.dbBaseSeleccionados.reduce((total,servicio)=> {
+        let totalBase = this.dbBaseSeleccionados.reduce((total,servicio)=> {
             return total + servicio.precio;
         }, 0);
 
@@ -99,18 +98,7 @@ class Pedido {
             divDescuentos.appendChild(labelDescuentos);
         }
 
-        const extrasConDescuento = this.dbExtrasSeleccionados.map(servicio => {
-            if(servicio.cantidad == 10){
-                return{
-                    ...servicio,
-                    precio: servicio.precio * 0.9,
-                }
-            } else {
-                return {
-                    ...servicio,
-                }
-            }
-        });
+        const extrasConDescuento = this.aplicarDescuentosExtras();
 
         let totalExtra = 0;
         extrasConDescuento.forEach(servicio => {
@@ -143,40 +131,25 @@ class Pedido {
         return contenedor.appendChild(div);
     }
 
-    descuentoExtras() {
-        this.dbExtrasSeleccionados.map(servicio => {
+    aplicarDescuentosExtras() {
+        return this.dbExtrasSeleccionados.map(servicio => {
             if(servicio.cantidad == 10){
-                return{
+                return {
                     ...servicio,
                     precio: servicio.precio * 0.9,
                 };
-            } else {
-                return {
-                    ...servicio,
-                };
             }
+            return servicio;
         });
     }
 
     almacenarLocalStorage() {
         this.agruparArrays();
-        
-        const extrasConDescuento = this.dbExtrasSeleccionados.map(servicio => {
-            if(servicio.cantidad == 10){
-                return{
-                    ...servicio,
-                    precio: servicio.precio * 0.9,
-                };
-            } else {
-                return {
-                    ...servicio,
-                };
-            }
-        });
+        const extras = this.aplicarDescuentosExtras();
     
         const pedidoFinal = {
             base: this.dbBaseSeleccionados,
-            extras: extrasConDescuento,
+            extras: extras,
         };
     
         localStorage.setItem('Pedido', JSON.stringify(pedidoFinal));

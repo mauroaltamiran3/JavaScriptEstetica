@@ -1,19 +1,22 @@
-const servicios = new Servicios;
 const pedido = new Pedido;
 
 const construirServicio = (nombre, precio, esExtra) => {
     const servicio = new Servicios(nombre, precio, esExtra);
-    servicios.dbServicios.push(servicio);  // Si es extra, va a extrasServicios
+    Servicios.agregarServicio(servicio); // Agregar a dbServicios
 }
 
-construirServicio('Capping', 5000);
-construirServicio('Semipermanente', 6000);
-construirServicio('Soft Gel', 7000);
-construirServicio('Press On', 8000);
-construirServicio('Pestañas', 5000);
-construirServicio('Diseño básico por uña', 250, true);
-construirServicio('Diseño complejo por uña', 500, true);
-construirServicio('Pedrería por uña', 700, true);
+const servicios = [
+    { nombre: 'Capping', precio: 5000, esExtra: false },
+    { nombre: 'Semipermanente', precio: 6000, esExtra: false },
+    { nombre: 'Soft Gel', precio: 7000, esExtra: false },
+    { nombre: 'Press On', precio: 8000, esExtra: false },
+    { nombre: 'Pestañas', precio: 5000, esExtra: false },
+    { nombre: 'Diseño básico por uña', precio: 250, esExtra: true },
+    { nombre: 'Diseño complejo por uña', precio: 500, esExtra: true },
+    { nombre: 'Pedrería por uña', precio: 700, esExtra: true }
+];
+
+servicios.forEach(servicio => construirServicio(servicio.nombre, servicio.precio, servicio.esExtra));
 
 const main = document.getElementById('main');
 const contenedorServicios = document.createElement('div')
@@ -24,8 +27,9 @@ btnSeleccionar.textContent = 'Seleccionar';
 btnSeleccionar.style.display = 'block';
 btnSeleccionar.style.margin = '0 auto';
 
-servicios.listarServicio(contenedorServicios,false);
-servicios.listarServicio(contenedorServicios,true);
+// Mostrar servicios
+Servicios.listarServicio(contenedorServicios,false);
+Servicios.listarServicio(contenedorServicios,true);
 
 main.appendChild(contenedorServicios);
 main.appendChild(btnSeleccionar);
