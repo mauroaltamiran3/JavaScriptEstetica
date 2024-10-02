@@ -1,4 +1,4 @@
-class Servicios {
+class Servicios { 
     constructor (nombre, precio, esExtra = false) {
         this.nombre = nombre;
         this.precio = precio;
@@ -9,7 +9,7 @@ class Servicios {
     static dbServicios = [];
 
     static agregarServicio(servicio) {
-        this.dbServicios.push(servicio);
+        this.dbServicios.push(servicio); // Pusheo los servicios creados en el archivo main.js
     }
 
     static listarServicio(contenedor,esExtra) {

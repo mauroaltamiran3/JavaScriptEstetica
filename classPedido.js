@@ -8,16 +8,16 @@ class Pedido {
         this.dbSeleccionados = [...this.dbBaseSeleccionados, ...this.dbExtrasSeleccionados];
     }
 
-    agregarServicio(query, esExtra) {
+    agregarServicio(query, esExtra) { // Los servicios seleccionados, los pusheo a las base del constructor.
         query.forEach(servicio => {
             const index = servicio.dataset.index;
-            const servicioSeleccionado = Servicios.dbServicios[index];
+            const servicioSeleccionado = Servicios.dbServicios[index]; // Le asigno el servicio según el id de la base original.
 
             if(esExtra) {
                 const cantidad = servicio.value;
                 servicioSeleccionado.cantidad = cantidad;
 
-                if(servicioSeleccionado.cantidad > 0) {
+                if(servicioSeleccionado.cantidad > 0) { // Cuando sea mayor que 0, lo pusheo, sino no.
                     this.dbExtrasSeleccionados.push(servicioSeleccionado);
                 };
             } else {
@@ -26,7 +26,7 @@ class Pedido {
         });
     }
 
-    mostrarSeleccionados(contenedor) {
+    mostrarSeleccionados(contenedor) { // Muestro los servicios seleccionados.
         const divBase = document.createElement('div');
         const divExtra = document.createElement('div');
         const contenedorDivs = document.createElement('div');
@@ -77,7 +77,7 @@ class Pedido {
             return total + servicio.precio;
         }, 0);
 
-        if(this.dbBaseSeleccionados.length == 2) {
+        if(this.dbBaseSeleccionados.length == 2) { // Descuento
             totalBase *= 0.9;
 
             labelDescuentos.innerHTML = `<italic>Descuento del 10% por llevar 2 servicios principales</italic>`;
@@ -98,10 +98,11 @@ class Pedido {
             divDescuentos.appendChild(labelDescuentos);
         }
 
-        const extrasConDescuento = this.aplicarDescuentosExtras();
+        const extrasConDescuento = this.aplicarDescuentosExtras();  // Llamado a una función que me crea un nuevo array con map, con los valores actualizados en caso
+                                                                    // de que haya algún servicio seleccionado que cumpla el descuento.
 
         let totalExtra = 0;
-        extrasConDescuento.forEach(servicio => {
+        extrasConDescuento.forEach(servicio => { // Aplico descuento cuando el valor sea igual a 10.
             const labelExtraDescuento = document.createElement('label');
             totalExtra += (servicio.precio * servicio.cantidad);
 
