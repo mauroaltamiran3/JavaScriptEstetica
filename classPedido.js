@@ -184,7 +184,7 @@ class Pedido {
         return lista;
     }
 
-    mostrarLocalStorage(){
+    mostrarLocalStorage(contenedor){
         const pedidos = localStorage.getItem('Pedido');
 
         if(pedidos){
@@ -219,7 +219,7 @@ class Pedido {
 
                 div.appendChild(servicios);
                 div.appendChild(label);
-                main.appendChild(div);
+                contenedor.appendChild(div);
             })
         } else{
             console.log('No hay pedidos guardados');
