@@ -29,6 +29,14 @@ class IntroducirHTML {
         h3.style.margin = '0 0 10px 0';
         contenedor.appendChild(h3);
     }
+
+    addBr(elemento) {
+        elemento.appendChild(document.createElement('br'));
+    }
+
+    addElement(e){
+        return document.createElement(e);
+    }
 }
 
 const agregarHtml = new IntroducirHTML;

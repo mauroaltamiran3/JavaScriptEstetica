@@ -13,8 +13,8 @@ class Servicios {
     }
 
     static listarServicio(contenedor,esExtra) {
-        const divBase = document.createElement('div');
-        const divExtra = document.createElement('div');
+        const divBase = agregarHtml.addElement('div');
+        const divExtra = agregarHtml.addElement('div');
 
         divBase.id = 'divBase';
         divExtra.id = 'divExtra';
@@ -36,7 +36,7 @@ class Servicios {
         
                 divBase.appendChild(input);
                 divBase.appendChild(label);
-                divBase.appendChild(document.createElement('br'));
+                agregarHtml.addBr(divBase);
             } else {
                 const select = document.createElement('select');
                 select.name = 'servicioExtra';
@@ -53,7 +53,7 @@ class Servicios {
         
                 divExtra.appendChild(select);
                 divExtra.appendChild(label);
-                divExtra.appendChild(document.createElement('br'));
+                agregarHtml.addBr(divExtra);
             }
         });
 
