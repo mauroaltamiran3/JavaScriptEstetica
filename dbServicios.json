@@ -1,0 +1,10 @@
+[
+    { "nombre": "Capping", "precio": 5000, "esExtra": false },
+    { "nombre": "Semipermanente", "precio": 6000, "esExtra": false },
+    { "nombre": "Soft Gel", "precio": 7000, "esExtra": false },
+    { "nombre": "Press On", "precio": 8000, "esExtra": false },
+    { "nombre": "Pestañas", "precio": 5000, "esExtra": false },
+    { "nombre": "Diseño básico por uña", "precio": 250, "esExtra": true },
+    { "nombre": "Diseño complejo por uña", "precio": 500, "esExtra": true },
+    { "nombre": "Pedrería por uña", "precio": 700, "esExtra": true }
+]

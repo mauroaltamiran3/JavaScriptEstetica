@@ -1,3 +1,5 @@
+const servicioManager = new ServicioManager;
+
 class Pedido {
     constructor() {
         this.dbBaseSeleccionados = [];
@@ -8,25 +10,45 @@ class Pedido {
         this.dbSeleccionados = [...this.dbBaseSeleccionados, ...this.dbExtrasSeleccionados];
     }
 
-    agregarServicio(query, esExtra) { // Los servicios seleccionados, los pusheo a las base del constructor.
-        query.forEach(servicio => {
-            const index = servicio.dataset.index;
-            const servicioSeleccionado = Servicios.dbServicios[index]; // Le asigno el servicio según el id de la base original.
+    async mostrarTextoServicio(db,elemento,contenedor) {
+        try {
+            db.forEach( servicio => {
+                const label = agregarHtml.addElement('label');
+                
+                if(servicio.esExtra) {
+                    label.textContent = `${servicio.nombre} (${servicio.cantidad})`;
+                } else {
+                    label.textContent = `${servicio.nombre}`;
+                }
+    
+                elemento.appendChild(label);
+                agregarHtml.addBr(elemento);
+                contenedor.appendChild(elemento);
+            });
+        } catch (err) {
+            console.error('Error al agregar el textContent a los servicios seleccionados.',err);
+        }
+    }
 
-            if(esExtra) {
-                const cantidad = servicio.value;
-                servicioSeleccionado.cantidad = cantidad;
+    async agregarSeleccionados(query,esExtra) {
+        query.forEach(async servicio => {
+            const index = await servicio.dataset.index;
+            const servicioSeleccionado = await servicios.dbServicios[index];
 
-                if(servicioSeleccionado.cantidad > 0) { // Cuando sea mayor que 0, lo pusheo, sino no.
-                    this.dbExtrasSeleccionados.push(servicioSeleccionado);
-                };
-            } else {
-                this.dbBaseSeleccionados.push(servicioSeleccionado);
+            try {
+                if(esExtra && servicio.value > 0) {
+                    servicioSeleccionado.cantidad = servicio.value;
+                    pedido.dbExtrasSeleccionados.push(servicioSeleccionado);
+                } else if (!esExtra){
+                    pedido.dbBaseSeleccionados.push(servicioSeleccionado)
+                }
+            } catch (err) {
+                console.error('Error al agregar servicio seleccionado', err);
             }
         });
     }
 
-    mostrarSeleccionados(contenedor) { // Muestro los servicios seleccionados.
+    async mostrarSeleccionados(contenedor) { // Muestro los servicios seleccionados.
         const divBase = agregarHtml.addElement('div');
         const divExtra = agregarHtml.addElement('div');
         const contenedorDivs = agregarHtml.addElement('div');
@@ -40,29 +62,26 @@ class Pedido {
         agregarHtml.mostrarH3(divExtra,'Extras');
         agregarHtml.mostrarH3(divBase,'Base');
 
-        this.mostrarTextoServicio(this.dbBaseSeleccionados,divBase,contenedorDivs);
-        this.mostrarTextoServicio(this.dbExtrasSeleccionados,divExtra,contenedorDivs);
-        
-        contenedor.appendChild(contenedorDivs);
+        try {
+            const servicioBaseSeleccionado = document.querySelectorAll(`input[name="servicioBase"]:checked`); // Filtro los inputs checkeados
+            const servicioExtraSeleccionado = document.querySelectorAll(`select[name="servicioExtra"]`); // FIltro los selects con valor != 0
+
+            await this.agregarSeleccionados(servicioBaseSeleccionado, false);
+            await this.agregarSeleccionados(servicioExtraSeleccionado, true);
+    
+            await this.mostrarTextoServicio(this.dbBaseSeleccionados,divBase,contenedorDivs);
+            await this.mostrarTextoServicio(this.dbExtrasSeleccionados,divExtra,contenedorDivs);
+
+            
+            contenedor.appendChild(contenedorDivs);
+            this.mostrarTotal(main);
+
+        } catch (err) {
+            console.error('Error al mostrar servicios seleccionados', err);
+        }
     };
 
-    mostrarTextoServicio(db,elemento,contenedor) {
-        db.forEach(servicio => {
-            const label = agregarHtml.addElement('label');
-            
-            if(servicio.esExtra) {
-                label.textContent = `${servicio.nombre} (${servicio.cantidad})`;
-            } else {
-                label.textContent = `${servicio.nombre}`;
-            }
-
-            elemento.appendChild(label);
-            agregarHtml.addBr(elemento);
-            contenedor.appendChild(elemento);
-        });
-    }
-
-    mostrarTotal(contenedor) {
+    async mostrarTotal(contenedor) {
         const div = agregarHtml.addElement('div');
         const labelExtra = agregarHtml.addElement('label');
         const labelBase = agregarHtml.addElement('label');
@@ -74,36 +93,47 @@ class Pedido {
         labelDescuentos.style.fontStyle = 'italic';
         labelDescuentos.style.fontSize = '10px';
 
-        let totalBase = this.dbBaseSeleccionados.reduce((total,servicio)=> {
-            return total + servicio.precio;
-        }, 0);
+        const baseSeleccionados = this.dbBaseSeleccionados;
+    
+        let totalBase = 0;
+        try {
+            totalBase = baseSeleccionados.reduce((total, servicio) => {
+                return total + servicio.precio;
+            }, 0);
+        } catch (err) {
+            console.error('Error al aplicar reduce al totalBase.',err)
+        }
 
-        if(this.dbBaseSeleccionados.length == 2) { // Descuento
+        if (this.dbBaseSeleccionados.length === 2) {
             totalBase *= 0.9;
-
             labelDescuentos.innerHTML = `<italic>Descuento del 10% por llevar 2 servicios principales</italic>`;
             agregarHtml.addBr(labelDescuentos);
             divDescuentos.appendChild(labelDescuentos);
-            
-        } else if(this.dbBaseSeleccionados.length == 3) {
+        } else if (this.dbBaseSeleccionados.length === 3) {
             totalBase *= 0.85;
-
             labelDescuentos.innerHTML = `<italic>Descuento del 15% por llevar 3 servicios principales</italic>`;
             agregarHtml.addBr(labelDescuentos);
             divDescuentos.appendChild(labelDescuentos);
-        } else if(this.dbBaseSeleccionados.length >= 4) {
+        } else if (this.dbBaseSeleccionados.length >= 4) {
             totalBase *= 0.8;
-
             labelDescuentos.innerHTML = `<italic>Descuento del 20% por llevar 4 o más servicios principales</italic>`;
             agregarHtml.addBr(labelDescuentos);
             divDescuentos.appendChild(labelDescuentos);
         }
 
-        const extrasConDescuento = this.aplicarDescuentosExtras();  // Llamado a una función que me crea un nuevo array con map, con los valores actualizados en caso
-                                                                    // de que haya algún servicio seleccionado que cumpla el descuento.
+        const extrasConDescuento = this.aplicarDescuentosExtras();  // Llamado a una función que me crea un nuevo array con map con los valores actualizados en caso de que haya algún servicio seleccionado que cumpla el descuento (10 uñas).
 
         let totalExtra = 0;
-        extrasConDescuento.forEach(servicio => { // Aplico descuento cuando el valor sea igual a 10.
+        try {
+            totalExtra = extrasConDescuento.reduce((total, servicio) => {
+                return total + (servicio.precio * servicio.cantidad);
+            }, 0);
+        } catch (err) {
+            console.error('Error al aplicar reduce al totalExtra', err);
+        }
+
+        // Agregar mensaje de descuento para los extras
+        extrasConDescuento.forEach(servicio => {
             const labelExtraDescuento = agregarHtml.addElement('label');
             totalExtra += (servicio.precio * servicio.cantidad);
 
@@ -116,7 +146,11 @@ class Pedido {
             }
         });
 
-        this.almacenarLocalStorage(totalBase, totalExtra)
+        try {
+            this.almacenarLocalStorage(totalBase, totalExtra)
+        } catch (err) {
+            console.log('Error al almacenar en el localStorage.',err);
+        }
 
         labelBase.innerHTML = `<strong>Total Servicios Base: $${totalBase}</strong>`;
         labelExtra.innerHTML = `<strong>Total Servicios Extras: $${totalExtra}</strong>`;
@@ -150,7 +184,6 @@ class Pedido {
     almacenarLocalStorage(totalBase, totalExtra) {
         this.agruparArrays();
         const extras = this.aplicarDescuentosExtras();
-        console.log(extras);
         
         const pedidoFinal = {
             base: this.dbBaseSeleccionados,

@@ -1,26 +1,12 @@
 const pedido = new Pedido;
-
-const servicios = [ // db
-    { nombre: 'Capping', precio: 5000, esExtra: false },
-    { nombre: 'Semipermanente', precio: 6000, esExtra: false },
-    { nombre: 'Soft Gel', precio: 7000, esExtra: false },
-    { nombre: 'Press On', precio: 8000, esExtra: false },
-    { nombre: 'Pestañas', precio: 5000, esExtra: false },
-    { nombre: 'Diseño básico por uña', precio: 250, esExtra: true },
-    { nombre: 'Diseño complejo por uña', precio: 500, esExtra: true },
-    { nombre: 'Pedrería por uña', precio: 700, esExtra: true }
-];
-
-const [capping,Semipermanente,SoftGel,PressOn,Pestanhas,DisenhoBasico,DisenhoComplejo,Pedreria] = servicios;
-servicios.forEach(servicio => {
-    Servicios.agregarServicio(servicio);
-})
+const servicios = new ServicioManager;
 
 const main = document.getElementById('main');
-const contenedorServicios = document.createElement('div')
+const contenedorServicios = document.createElement('div');
 const btnSeleccionar = document.createElement('button');
 const btnMostrarPedidos = document.createElement('button');
 const btnBorrar = agregarHtml.addElement('button');
+
 
 btnBorrar.textContent = 'Borrar Pedidos';
 btnBorrar.style.display = 'none';
@@ -35,19 +21,24 @@ btnMostrarPedidos.style.display = 'block';
 btnMostrarPedidos.style.margin = '0 auto';
 
 // Mostrar servicios y botón
-Servicios.listarServicio(contenedorServicios,false);
-Servicios.listarServicio(contenedorServicios,true);
 
-main.appendChild(contenedorServicios);
-main.appendChild(btnSeleccionar);
-main.appendChild(btnMostrarPedidos);
-main.appendChild(btnBorrar);
+async function mostrarContenido () {
+    await servicios.listarServicios(contenedorServicios, 'Bases');
+    await servicios.listarServicios(contenedorServicios, 'Extras');
+
+    main.appendChild(contenedorServicios);
+    main.appendChild(btnSeleccionar);
+    main.appendChild(btnMostrarPedidos);
+    main.appendChild(btnBorrar);
+}
+mostrarContenido();
 
 agregarHtml.cssBody('#705C53','#F5F5F7', 'sans-serif');
 agregarHtml.cssMain();
 
 let pedidosVisibles = false;
 let contenedorPedidos = document.getElementById('contenedorPedidos');
+
 btnMostrarPedidos.addEventListener('click', () => {
 
     if (!contenedorPedidos) {
@@ -56,7 +47,6 @@ btnMostrarPedidos.addEventListener('click', () => {
         pedido.mostrarLocalStorage(contenedorPedidos);
         main.appendChild(contenedorPedidos);
     }
-
     // Aplico toggle
     if (pedidosVisibles) {
         contenedorPedidos.style.display = 'none';
@@ -81,27 +71,69 @@ btnMostrarPedidos.addEventListener('click', () => {
 
         btnBorrar.addEventListener('click', () => {
             localStorage.removeItem('Pedido');
+            contenedorPedidos.innerHTML = ''; // Limpia el contenido visible
+            btnBorrar.style.display = 'none'; // Ocultar el botón de borrar después de limpiar
         });
     }
 });
 
-btnSeleccionar.addEventListener('click', () => { // En el evento "limpio" el main y entrego los detalles del pedido.
-    if(contenedorPedidos) {
-        contenedorPedidos.style.display = 'none';
+btnSeleccionar.addEventListener('click', async (e) => { // En el evento "limpio" el main y entrego los detalles del pedido.
+    const serviciosBaseSeleccionados = document.querySelectorAll('input[name="servicioBase"]:checked');
+    const serviciosExtraSeleccionados = Array.from(document.querySelectorAll('select[name="servicioExtra"]')).filter(select => select.value > 0);
+    const serviciosSeleccionados = [...serviciosBaseSeleccionados, ...serviciosExtraSeleccionados];
+
+    if (serviciosSeleccionados.length === 0) {
+        e.preventDefault(); // Si está vacío, freno el comportamiento
+
+        Swal.fire({
+            title: 'Error',
+            text: 'Debes seleccionar al menos un servicio',
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                console.log("El usuario ha sido notificado. Selecciona al menos un servicio.");
+            }
+        });
+    } else {
+        const result = await Swal.fire({
+            title: 'Confirmar compra',
+            text: "¿Estás seguro de confirmar el pedido?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, confirmar',
+            cancelButtonText: 'No, cancelar'
+        });
+        
+        if (result.isConfirmed) {
+            // Si el usuario confirmó, continúa con la ejecución del pedido
+            if (contenedorPedidos) {
+                contenedorPedidos.style.display = 'none';
+            }
+            btnSeleccionar.style.display = 'none';
+            contenedorServicios.style.display = 'none';
+            btnMostrarPedidos.style.display = 'none';
+            btnBorrar.style.display = 'none';
+        
+            const divBase = agregarHtml.addElement('div');
+            const divExtra = agregarHtml.addElement('div');
+            const contenedorDivs = agregarHtml.addElement('div');
+        
+            divBase.id = 'divBase';
+            divExtra.id = 'divExtra';
+            contenedorDivs.id = 'contenedorDivs';
+            contenedorDivs.style.display = 'flex';
+            contenedorDivs.style.justifyContent = 'space-around';
+        
+            agregarHtml.mostrarH3(divExtra,'Extras');
+            agregarHtml.mostrarH3(divBase,'Base');
+        
+            agregarHtml.mostrarH2(main,'Detalles del Pedido');
+            pedido.mostrarSeleccionados(main);
+        } else {
+            // Si el usuario no acepta, cancelo la ejecución
+            e.preventDefault();
+            console.log("Pedido cancelado por el usuario.");
+        }
     }
-    btnSeleccionar.style.display = 'none';
-    contenedorServicios.style.display = 'none';
-    btnMostrarPedidos.style.display = 'none';
-    btnBorrar.style.display = 'none';
-    const servicioBaseSeleccionado = document.querySelectorAll(`input[name="servicioBase"]:checked`); // Filtro los inputs checkeados
-    const servicioExtraSeleccionado = document.querySelectorAll(`select[name="servicioExtra"]`); // FIltro los selects con valor != 0
-
-    pedido.agregarServicio(servicioBaseSeleccionado, false); 
-    pedido.agregarServicio(servicioExtraSeleccionado, true);
-    pedido.agruparArrays();
-
-    agregarHtml.mostrarH2(main,'Detalles del Pedido');
-
-    pedido.mostrarSeleccionados(main);
-    pedido.mostrarTotal(main);
 });
